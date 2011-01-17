@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Twitter Realtime plugin</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Amy Jo">
+	<link rel="stylesheet" href="./css/bright.css" type="text/css" charset="utf-8" media="screen">
+	<!-- Date: 2011-01-27 -->
+</head>
+<body style="margin:30px;" class="bright">
+
+<h1 id="the_twitter_realtime_plugin">The Twitter Realtime Plugin</h1>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>This page has some information about the design and structure of the Twitter Realtime (User Streams) Plugin. More information as well as an editable to-do list for both planned near-term work and longer-term features, will be added shortly. We&#8217;re interested in any comments and feedback on the design.  </p>
+
+<p>Information about setup, configuration, and running the plugin scripts is <a href="./setup_and_config.html">here</a>.</p>
+
+<p>This plugin adds new types of twitter data to the database, as described below. <br>
+See the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-01-28_streaming.sql</code> for the specifics of the new table schemas.
+Currently, these new tables are relatively normalized.  For very large data sets, sometimes denormalized tables can be more workable.  We&#8217;re interested in any feedback from people who&#8217;ve spent time thinking about similar database design issues, as now is the time make any schema modifications.</p>
+
+<h3 id="json_stream_items_and_thinkup_data">JSON Stream items and ThinkUp data</h3>
+
+<p>The User Stream we&#8217;re parsing contains JSON items, and a JSON parser/item handler has been added to ThinkUp.  You can look at the output of the new scripts, e.g. the script set up to process the items it pulls off the &#8216;message queue&#8217;, to see the structure of these messages.  If you do this, you&#8217;ll notice that there is information we&#8217;re not yet processing (though this plugin processes and stores more data than the crawler does).  It may be that we should be storing all of the data from each stream item, even if we don&#8217;t yet make use of it.</p>
+
+<h2 id="geo_data_handling">geo data handling</h2>
+
+<p>Where available, I&#8217;m storing both &#8216;place&#8217; information and &#8216;coordinates&#8217; information for a post. [If a user posts via twitter&#8217;s web UI, &#8216;place&#8217; but not &#8216;coordinates&#8217; may be defined.  If a user posts via a mobile app, often the coordinate information is first specified and then an associated &#8216;place&#8217; is included in the status for that location via Twitter&#8217;s geo services.  I&#8217;ve also occasionally seen just the &#8216;coordinates&#8217; set but not the &#8216;place&#8217;].  </p>
+
+<p>I&#8217;m storing this information using mysql spatial data types, specifically Polygon and Point. This representation is useful because it will allow us to perform locational queries on our data, e.g. &#8216;contains&#8217; or &#8216;intersects&#8217; queries.  The two new tables for this data are <code>tu_places</code> (holding place info) and <code>tu_post_locations</code> (storing the coordinates, if defined, for a post).  In addition, <code>tu_posts</code> has a new <code>place_id</code> field, storing the place (if defined) for a post.</p>
+
+<p>A &#8216;place&#8217; definition includes a bounding box. This polygon is stored in the &#8216;bbox&#8217; field of the <code>tu_places</code> table. The &#8216;longlat&#8217; field in the <code>tu_places</code> table is the centroid of this bounding box. <br>
+To see readable data in these tables, do something like this:</p>
+
+<pre><code>  select id, place_id, place_type, name, full_name, ccode, country, AsText(longlat), AsText(bbox) from tu_places;
+  select id, AsText(longlat), post_id, place_id from tu_post_locations;
+</code></pre>
+
+<p>It turns out that both &#8216;place&#8217; and &#8216;coordinates&#8217; data are long/lat, not lat/long as with the &#8216;geo&#8217; field, which as I understand it is there just for backwards compatibility. Unfortunately, the existing geoencoder plugin uses the geo field (lat/long), and stores a point as a string, not a Point.  Clearly at some point we need a data migration to reconcile the location info. (I&#8217;d suggest converting the plugin&#8217;s lat/long strings into long/lat Points).  For now, I have made no changes to the geo plugin, which continues to store user location and/or post &#8216;geo&#8217; as lat/long strings. I figured this migration was best separated from the first iteration of the streaming implementation.</p>
+
+<h2 id="8216entity8217_information8212_hashtags_mentions_and_urls">&#8216;entity&#8217; information&#8212; hashtags, mentions, and urls</h2>
+
+<p>A post includes an &#8216;entity&#8217; object, containing parsed-out information on the hashtags, mentions, and urls of the post.</p>
+
+<p>For mentions and hashtags, there are two new tables for each.  One table can be viewed as storing mention or hashtag &#8216;objects&#8217; (including a running count of how many times that object has been used), and the other is a join table indicating the posts that contain that mention or hashtag.</p>
+
+<p>E.g., to see hashtags or mentions used more than 10 times, you can do something like this:</p>
+
+<pre><code>  select * from tu_mentions where count_cache &gt; 10 order by count_cache desc;
+</code></pre>
+
+<p>or</p>
+
+<pre><code>  select * from tu_hashtags where count_cache &gt; 10 order by count_cache desc;
+</code></pre>
+
+<p>[This count_cache value is only for the data collected by via the streaming API].</p>
+
+<p>The &#8216;mentions&#8217; information includes user id as well as user screenname.</p>
+
+<p>The mentions list, particularly the first item in the list, is also used to ID &#8216;old-style&#8217; retweets, by searching for a <code>"RT @first_mention"</code> string in the post text.  If that string is found, the <code>in_rt_of_user_id</code> field is set in tu_posts with the user id for that mention, regardless of whether the retweeted post itself can be located.</p>
+
+<p>For tweet urls, an expanded url is sometimes included in the entity info. For now, expansions are only given for the &#8216;t.co&#8217; links.  I don&#8217;t know if Twitter has plans to include the expansion for other shorteners in future or not.  For such urls, I store the expansion at the time the link record is created.</p>
+
+<h2 id="stream_8216events8217">stream &#8216;events&#8217;</h2>
+
+<p>In addition to posts, the stream data  contains various other &#8216;events&#8217;.  The only one I&#8217;m truly processing right now is the favorite event.  From the stream data, we now store both the favs of the authorized user, and others&#8217; favs of that user&#8217;s posts.</p>
+
+<p>For deletion events, I don&#8217;t actually delete from the database, but do print out the deleted post text to STDOUT just for fun, if it is available.</p>
+
+<p>For the other events, e.g. (un)follows, list additions, unfavorites, etc., I don&#8217;t do any handling of them yet.
+Also, you may notice that when you start up the stream, the first thing it sends is the user&#8217;s list of friends.  I don&#8217;t do anything with this list yet.  The friends information is of course updated by the crawler currently.</p>
+
+<h2 id="8216message_queue8217_implementation">&#8216;message queue&#8217; implementation</h2>
+
+<p>As described <a href="./setup_and_config.html">here</a>, there are two implementation options for the &#8216;message queue&#8217; that decouples the scripts that pull items off the stream, from the script that processes those items. One implementation uses Redis, and the other uses a database table as a queue, deleting each item from the database table as it is consumed.  </p>
+
+<p>The Redis implementation should be faster and lighter-weight and has the advantage of removing load from the database.  Redis has a blocking list pop, and so the consumer script just uses that to wait for new data. (The blocking wait time is currently set to 5 minutes&#8212; if that is exceeded without getting data, the script sleeps for a configurable period, and then reconnects to Redis and continues.  The stream sends a heartbeat/keep-alive, so normally there is no timeout issue).</p>
+
+<p>The database implementation resets the auto increment count on script startup (and also if the id reaches a given max), just so it doesn&#8217;t grow too large. 
+If it does not find anything in the database queue, it sleeps for a configurable period and then tests the queue again.  </p>
+
+
+</body>
+</html>

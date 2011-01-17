@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Information on the ThinkUp Twitter User Streams Branch</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Amy Jo">
+	<link rel="stylesheet" href="./css/bright.css" type="text/css" charset="utf-8" media="screen">
+	<!-- Date: 2011-01-26 -->
+</head>
+<body style="margin:30px;" class="bright">
+	
+<h2>Information on the ThinkUp Twitter Realtime (Streaming) Branch</h2>
+
+<p>The links below provide information on setting up and using the Twitter Realtime (User Streams) functionality in 
+  <a href="https://github.com/ginatrapani/ThinkUp/">ThinkUp</a>. The plugin sets up a persistent connection to the Twitter <a href="http://dev.twitter.com/pages/user_streams" title="User Streams | dev.twitter.com">User Streams API</a>, for each active Twitter account (instance) in your ThinkUp installation.</p>
+
+  <p>This functionality is in an <strong>alpha</strong> state and is not yet officially merged into the ThinkUp repository. The 
+  <a href="./setup_and_config.html">setup</a> link below provides more detail.<br>
+   To run the code in its current state, you need to have access to and be comfortable using the command line— these scripts can not yet be triggered via the web browser. Eventually, things will become more shrink-wrapped.  This branch is also currently (2011-01-27) missing many tests; more will be added soon.</p>
+
+ <p>It's not yet known whether this code runs as is on Windows (that's what alpha testers are for :) but for sure it will require Cygwin to be installed.
+ </p>	
+ 
+ <p>The streaming functionality is implemented via several (indefinitely-)long-running processes.  So, an ISP such as Dreamhost, that kills long-running processes, will not support this plugin very gracefully.  (We may later implement some workarounds for this issue).</p>
+
+  <ul>
+	<li><a href="./setup_and_config.html">Setup, Twitter Realtime plugin configuration, and running the Realtime (streaming) scripts.</a><br>&nbsp;</li>
+	<li>Some <a href="./user_streams_design.html">information on design aspects</a> of the the ThinkUp Twitter Realtime plugin, including the additional data that it is collecting.  We are eager for comments/suggestions on the code and database design.  E.g., now is a great time to consider database schema issues.</li>
+  </ul>
+
+</body>
+</html>

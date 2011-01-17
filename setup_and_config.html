@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>setup_and_config</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Amy Jo">
+	<link rel="stylesheet" href="./css/bright.css" type="text/css" charset="utf-8" media="screen">
+	<!-- Date: 2011-01-27 -->
+</head>
+
+<body style="margin:30px;" class="bright">
+    
+<h2 id="introduction">Introduction</h2>
+
+<p>This document describes how to set up and run the currently-in-<strong>alpha</strong> Twitter Realtime plugin. To set it up in its current state, you&#8217;ll need to be comfortable with the command line. These instructions assume that you are already familiar with how to configure and use ThinkUp.</p>
+
+<p>The Twitter Realtime plugin sets up a persistent connection to the Twitter <a href="http://dev.twitter.com/pages/user_streams" title="User Streams | dev.twitter.com">User Streams API</a>, for each active Twitter account (instance) in your ThinkUp installation, using a modified version of the <a href="http://code.google.com/p/phirehose/" title="phirehose - Project Hosting on Google Code">Phirehose</a> libs (included). In future, when the Twitter Site Streams API is out of beta, Site Streams will be supported by this plugin as well.</p>
+
+<p>In order to absorb spikes in the data stream, the plugin uses a &#8216;message queue&#8217; to decouple the process(es) that pull items off the stream(s) from the process that parses the items and adds information to the ThinkUp database. <br>
+The plugin supports two different implementations of this message queue.  The first uses a new database table (<code>tu_stream_data</code>).  The second uses the <a href="http://redis.io/" title="Redis">Redis</a> persistent key-value store to support the message queue. (Gory details supplied on request, especially if you are interested in Redis&#8217; capabilities.)  </p>
+
+<p>Redis is lightweight, robust, and efficient, and reduces database load; and so its use should be preferable in general to the db-based implementation.  However, the plugin can only use the Redis implementation if you are running a version of PHP >= 5.3. (Details: this is due to the Redis client libs we&#8217;re using, <a href="https://github.com/nrk/predis">Predis</a>; and in particular the specific version of those libs that we are using.  If you really want to use Redis with PHP 5.2, it is possible with a bit of extra code modification.)</p>
+
+<h3 id="alpha_testing">Alpha Testing</h3>
+
+<p>For alpha testing, it will be useful to test this plugin using a variety of platforms and configurations.  It&#8217;s been primarily tested thus far on OS X with PHP 5.3.3, and there should be no issues running on Linux.  We are looking for testers who run PHP 5.2 (to check that the plugin will properly fall back to using the db-based message queue instead of Redis, regardless of configuration settings).  It will be &#8216;interesting&#8217; to see how the plugin runs on Windows+Cygwin. (On Windows, Cygwin will be required). It would be helpful also to have the Redis integration tested on different platforms.</p>
+
+<h2 id="setup_and_config">Setup and Config</h2>
+
+<p>Use this branch: <a href="https://github.com/amygdala/thinktank/tree/streaming2">https://github.com/amygdala/thinktank/tree/streaming2</a> .</p>
+
+<ul>
+<li><p>Optional: install Redis, if you are willing to test that aspect of the plugin: <a href="http://redis.io/">http://redis.io/</a>.  It would be useful to us if you are willing to try it. You may need to compile it, which should be straightforward.</p></li>
+<li><p>back up/copy your database.  [There are no known database issues with this code, but do this to be on the safe side.]</p></li>
+<li><p>run the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-01-28_streaming.sql</code>. [This assumes that your copy of the database is already otherwise current&#8212; if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]</p></li>
+<li><p>when you go to &#8216;Settings&#8217; in your ThinkUp installation in the browser, you should now see a &#8220;<strong>Twitter Realtime</strong>&#8221; plugin.  Activate it, then go into its configuration page.  For the Twitter Realtime plugin to work properly, the Twitter Plugin must already be activated and configured with a Twitter app &#8216;consumer key&#8217; and &#8216;consumer secret&#8217;.  Additionally, you should have already set up one or more Twitter accounts via the Twitter Plugin.</p></li>
+<li><p>in the Twitter Realtime plugin config, enter the path to your php interpreter (e.g. <code>/usr/bin/php</code>). This is required.  Double check that you&#8217;ve typed it correctly.</p></li>
+<li><p>to use Redis, go into the advanced plugin options and enter &#8216;true&#8217;.  If that is set, the plugin will expect to find a Redis server running (as described below). Otherwise, if it is left blank or set to something other than &#8216;true&#8217;, the db-based queue will be used. Also, as discussed above, if you are not running PHP >= 5.3, then the database queue will be used even if you configure the plugin to use Redis.</p></li>
+<li><p>I don&#8217;t think this should be necessary, but if anyone had to do this, let me know.  Double check that your path to &#8216;touch&#8217; is <code>/usr/bin/touch</code>.  If it is not, edit the &#8216;touch&#8217; path in <code>&lt;thinkup&gt;webapp/plugins/twitter_realtime/model/class.StreamMasterCollect.php</code> [search for &#8216;touch&#8217;]</p></li>
+<li><p>The Twitter Realtime plugin should list all the Twitter accounts (instances) in your ThinkUp installation. This is the same list you see in the Twitter Plugin config page. Pause/start the Twitter instances as you prefer.  Any instances that you pause will be paused in the crawler as well. 
+A Twitter User Stream will be opened for each active (unpaused) Twitter account in separately-running processes, up to 5 accounts max (to avoid running afoul of Twitter guidelines).  </p></li>
+<li><p>set <code>slog_location</code> in the <code>config.inc.php</code> file to point to where a new streaming log will be, e.g.:</p>
+
+<p><code>$THINKUP_CFG['slog_location']   = $THINKUP_CFG['source_root_path'].'logs/streaming.log';</code></p>
+
+<p>Then, you will also need to create that file, <code>streaming.log</code>. E.g., </p>
+
+<p><code><pre>
+% cd &lt;thinkup&gt;/logs
+% touch streaming.log
+</pre></code></p></li>
+</ul>
+
+<h2 id="running_the_scripts">Running the scripts</h2>
+
+<p>If you are using Redis, first start up the Redis server in its own terminal window if you want to use it: 
+cd to <code>&lt;redis_installation&gt;/src</code> and start the server:</p>
+
+<pre><code>% ./redis-server
+</code></pre>
+
+<p>To start up the instance streams, in another terminal window, cd to <code>&lt;thinkup&gt;webapp/crawler</code>.  Then do:</p>
+
+<pre><code>% php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;
+</code></pre>
+
+<p>(E.g., use the same admin email and pwd that you use to run the crawler). You should see some output to STDOUT along the lines of the following, which shows starting up three instances.  In this example, IDs 1 and 3 belong to one user, and ID 2 belongs to a different user.  A PID file for each instance process gets written to <code>&lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming</code>.  </p>
+
+<pre><code>    have streamer method: stream
+    in TwitterRealtimePlugin-&gt;stream_all()
+    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57141.pid
+    started pid 57141 for amy@infosleuth.net and instance id 1
+    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57144.pid
+    started pid 57144 for amy@infosleuth.net and instance id 3
+    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57147.pid
+    started pid 57147 for info+bob@infosleuth.net and instance id 2
+</code></pre>
+
+<p>The startup script will then exit.  A child script, <code>&lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/stream2.php</code>, is used to launch the individual instance streams.  These are the processes which write to the message queue. <br>
+[<code>shell_exec</code> is used to launch the child processes&#8212; please let me know if this acts up for anyone].</p>
+
+<p>At this point you might check that all the intended streams are running, via:</p>
+
+<pre><code>    ps auxw | grep -i stream2
+</code></pre>
+
+<p>You should see a process for each instance.  You will also find some temp log files, for the output of each of the above processes, in the <code>&lt;thinkup&gt;/logs</code> dir. They will have the format <code>&lt;user_email&gt;_&lt;inst_id&gt;.log</code>.  If there were to be any trouble opening up the individual streams, these logs are where the problems would be reported.</p>
+
+<p>Next, start up the stream processor. This is the process that reads from the message queue and processes the data. In another terminal window, again cd to <code>&lt;thinkup&gt;webapp/crawler</code>.
+Then run:  </p>
+
+<pre><code>    % php stream.php stream_process &lt;admin_user_email&gt; &lt;pwd&gt;
+</code></pre>
+
+<p>Once this process is running, you will see output generated in the <code>&lt;thinkup&gt;/logs/streaming.log</code> file (or whatever streaming log location you specified in the config file).</p>
+
+<p>Once all the scripts are up and running, you can see the new realtime content displayed right away in the web app.</p>
+
+<p>There is no problem in running the crawler at the same time as the streaming scripts are running. (One thing the crawler will do is expand the URLs collected by the streaming processes, if you have the <code>Expand URLs</code> plugin activated).</p>
+
+<h3 id="shutting_down_the_scripts">Shutting down the scripts</h3>
+
+<p>To shut down the stream handling processes for the Twitter instances, do from <code>&lt;thinkup&gt;webapp/crawler</code>:</p>
+
+<pre><code>% php stream.php shutdown_streams &lt;admin_user_email&gt; &lt;pwd&gt;
+</code></pre>
+
+<p>You should see some output along these lines:</p>
+
+<pre><code>have streamer method: shutdown_streams
+in TwitterRealtimePlugin-&gt;shutdown_streams()
+killing all running streaming processes
+found pid 57141
+found pid 57144
+found pid 57147
+killed: 57141
+deleting 57141.pid
+killed: 57144
+deleting 57144.pid
+killed: 57147
+deleting 57147.pid
+</code></pre>
+
+<p>If you should run <code>php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;</code> while stream processes are already opened, it will kill them based on their PIDs and then open new streams.</p>
+
+<p>To shut down the &#8216;stream processor&#8217; script (the one you started via <code>php stream.php stream_process</code>), just ctl-C in its terminal window. <br>
+You can use ctl-C to shut down the Redis server also.</p>
+
+
+</body>
+</html>
