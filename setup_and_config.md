@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>setup_and_config</title>
+	<title>Instructions for configuring and running the (alpha) Twitter Realtime Plugin</title>
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Amy Jo">
 	<link rel="stylesheet" href="./css/bright.css" type="text/css" charset="utf-8" media="screen">
@@ -13,6 +13,8 @@
 
 <body style="margin:30px;" class="bright">
     
+# Instructions for configuring and running the (alpha) Twitter Realtime Plugin #
+
 ## Introduction ##
 
 This document describes how to set up and run the currently-in-**alpha** Twitter Realtime plugin. To set it up in its current state, you'll need to be comfortable with the command line. These instructions assume that you are already familiar with how to configure and use ThinkUp.
