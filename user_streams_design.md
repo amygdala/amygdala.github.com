@@ -82,6 +82,12 @@ The Redis implementation should be faster and lighter-weight and has the advanta
 The database implementation resets the auto increment count on script startup (and also if the id reaches a given max), just so it doesn't grow too large. 
 If it does not find anything in the database queue, it sleeps for a configurable period and then tests the queue again.  
 
+## Stream process management ##
+
+Stream process management has changed from previous versions, which used PID flat files to track running streams.    
+
+The app now stores stream process PIDs in the database-- which should be more robust-- and the individual UserStream processes (one for each 'owner') now generate an activity 'heartbeat' as they run.  This allows dead or wedged stream processes to be identified, killed, and restarted, while live stream processes can be left to run.  This lets a regularly-run script (e.g., a cron job) check for stream 'liveness' and restart the non-live processes as necessary.
+
 
 </body>
 </html>

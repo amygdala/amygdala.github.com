@@ -9,22 +9,26 @@
     color: #0D2681;
 }*/
 
+body {
+  color: #493736;
+}
+
 .bright a {
         text-decoration: none;
-        background-color: #fcebe6;
+        background-color: #e0eeef;
         padding: 0 1px;
-        color: #7B3B3B;
+        color: #5B5344;
         /*border-bottom-color: #7B3B3B;
         border-bottom-width: 1px;*/
 }
 
 .bright a:visited {
-        color: #7B3B3B;
+        color: #5B5344;
 }
 
 .bright a:hover {
         text-decoration: underline;
-        background-color: #fcebe6;
+        background-color: #e0eeef;
         /*border-bottom: 1px solid #aab57b;*/
         color: #5B5344;
 }

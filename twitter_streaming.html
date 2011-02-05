@@ -15,21 +15,24 @@
 <h2>Information on the ThinkUp Twitter Realtime (Streaming) Branch</h2>
 
 <p>The links below provide information on setting up and using the Twitter Realtime (User Streams) functionality in 
-  <a href="https://github.com/ginatrapani/ThinkUp/">ThinkUp</a>. The plugin sets up a persistent connection to the Twitter <a href="http://dev.twitter.com/pages/user_streams" title="User Streams | dev.twitter.com">User Streams API</a>, for each active Twitter account (instance) in your ThinkUp installation.</p>
+  <a href="https://github.com/ginatrapani/ThinkUp/">ThinkUp</a>. The plugin sets up a persistent connection to the Twitter <a href="http://dev.twitter.com/pages/user_streams" title="User Streams | dev.twitter.com">User Streams API</a>, for each active Twitter account (instance) in your ThinkUp installation.  The Twitter Realtime plugin runs fine in conjunction with the Twitter crawler, so you can continue to run the crawler as usual at the same time.</p>
 
   <p>This functionality is in an <strong>alpha</strong> state and is not yet officially merged into the ThinkUp repository. The 
   <a href="./setup_and_config.html">setup</a> link below provides more detail.<br>
-   To run the code in its current state, you need to have access to and be comfortable using the command line— these scripts can not yet be triggered via the web browser. Eventually, things will become more shrink-wrapped.  This branch is also currently (2011-01-27) missing many tests; more will be added soon.</p>
+   To run the code in its current state, you need to have access to and be comfortable using the command line— these scripts can not yet be triggered via the web browser. Eventually, things will become more shrink-wrapped.  This branch is also missing some tests; more will be added soon. (Currently, there is good model test coverage, but more plugin tests, particularly with respect to process management, will be added.)</p>
 
  <p>It's not yet known whether this code runs as is on Windows (that's what alpha testers are for :) but for sure it will require Cygwin to be installed.
  </p>	
  
- <p>The streaming functionality is implemented via several (indefinitely-)long-running processes.  So, an ISP such as Dreamhost, that kills long-running processes, will not support this plugin very gracefully.  (We may later implement some workarounds for this issue).</p>
+ <p>The streaming functionality is implemented via several (indefinitely-)long-running stream processes.  So, an ISP such as Dreamhost, that kills long-running processes, may require some special attention. The script that launches the streams now checks to see which existing stream processes have shown recent activity, and kills and restarts those that have not.  So, if you put this startup script on a cron, you can regularly restart any streams that have been killed off.  Of course, there will be some gaps in the data stream if processes are regularly killed off.  Such gaps will be filled in for the most part via the crawler.
+  </p>
 
   <ul>
 	<li><a href="./setup_and_config.html">Setup, Twitter Realtime plugin configuration, and running the Realtime (streaming) scripts.</a><br>&nbsp;</li>
 	<li>Some <a href="./user_streams_design.html">information on design aspects</a> of the the ThinkUp Twitter Realtime plugin, including the additional data that it is collecting.  We are eager for comments/suggestions on the code and database design.  E.g., now is a great time to consider database schema issues.</li>
   </ul>
+
+<p>Last updated: 2011-02-24.</p>
 
 </body>
 </html>

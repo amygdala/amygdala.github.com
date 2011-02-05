@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Instructions for configuring and running the (alpha) Twitter Realtime Plugin </title>
+	<title>Instructions for configuring and running the (alpha) Twitter Realtime Plugin</title>
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Amy Jo">
 	<link rel="stylesheet" href="./css/bright.css" type="text/css" charset="utf-8" media="screen">
@@ -13,7 +13,7 @@
 
 <body style="margin:30px;" class="bright">
     
-<h1>Instructions for configuring and running the (alpha) Twitter Realtime Plugin </h1>
+<h1 id="instructions_for_configuring_and_running_the_alpha_twitter_realtime_plugin">Instructions for configuring and running the (alpha) Twitter Realtime Plugin</h1>
 
 <h2 id="introduction">Introduction</h2>
 
@@ -32,16 +32,21 @@ The plugin supports two different implementations of this message queue.  The fi
 
 <h2 id="setup_and_config">Setup and Config</h2>
 
-<p>Use this branch: <a href="https://github.com/amygdala/thinktank/tree/streaming2">https://github.com/amygdala/thinktank/tree/streaming2</a> .</p>
+<p>Use this branch: <a href="https://github.com/amygdala/thinktank/tree/streaming4">https://github.com/amygdala/thinktank/tree/streaming4</a>.
+You can grab it by clicking the &#8216;Download&#8217; button on the page.
+<br><strong>Note</strong>: this link was updated on 2011-02-24 to point to the <code>streaming4</code> branch.</p>
+
+<p>Then do the following:    </p>
 
 <ul>
 <li><p>Optional: install Redis, if you are willing to test that aspect of the plugin: <a href="http://redis.io/">http://redis.io/</a>.  It would be useful to us if you are willing to try it. You may need to compile it, which should be straightforward.</p></li>
 <li><p>back up/copy your database.  [There are no known database issues with this code, but do this to be on the safe side.]</p></li>
-<li><p>run the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-01-28_streaming.sql</code>. [This assumes that your copy of the database is already otherwise current&#8212; if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]</p></li>
+<li><p>run the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-02-25_streaming.sql</code>. [This assumes that your copy of the database is already otherwise current&#8212; if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]</p>
+
+<p><strong>Updating the database from a previous version of the streaming branch</strong>: There have been a few schema changes from previous streaming versions, notably a new table and a new table field, as well as a couple of index improvements.  If you want to update from a previous installation of the streaming branch, the most straightforward approach is probably to first run the migration file above (ignoring any complaints from the script about adding already-existing fields). Then <a href="https://gist.github.com/cffeba6df6043c328d42">make this set of changes</a> to the existing tables.</p></li>
 <li><p>when you go to &#8216;Settings&#8217; in your ThinkUp installation in the browser, you should now see a &#8220;<strong>Twitter Realtime</strong>&#8221; plugin.  Activate it, then go into its configuration page.  For the Twitter Realtime plugin to work properly, the Twitter Plugin must already be activated and configured with a Twitter app &#8216;consumer key&#8217; and &#8216;consumer secret&#8217;.  Additionally, you should have already set up one or more Twitter accounts via the Twitter Plugin.</p></li>
 <li><p>in the Twitter Realtime plugin config, enter the path to your php interpreter (e.g. <code>/usr/bin/php</code>). This is required.  Double check that you&#8217;ve typed it correctly.</p></li>
 <li><p>to use Redis, go into the advanced plugin options and enter &#8216;true&#8217;.  If that is set, the plugin will expect to find a Redis server running (as described below). Otherwise, if it is left blank or set to something other than &#8216;true&#8217;, the db-based queue will be used. Also, as discussed above, if you are not running PHP >= 5.3, then the database queue will be used even if you configure the plugin to use Redis.</p></li>
-<li><p>I don&#8217;t think this should be necessary, but if anyone had to do this, let me know.  Double check that your path to &#8216;touch&#8217; is <code>/usr/bin/touch</code>.  If it is not, edit the &#8216;touch&#8217; path in <code>&lt;thinkup&gt;webapp/plugins/twitter_realtime/model/class.StreamMasterCollect.php</code> [search for &#8216;touch&#8217;]</p></li>
 <li><p>The Twitter Realtime plugin should list all the Twitter accounts (instances) in your ThinkUp installation. This is the same list you see in the Twitter Plugin config page. Pause/start the Twitter instances as you prefer.  Any instances that you pause will be paused in the crawler as well. 
 A Twitter User Stream will be opened for each active (unpaused) Twitter account in separately-running processes, up to 5 accounts max (to avoid running afoul of Twitter guidelines).  </p></li>
 <li><p>set <code>slog_location</code> in the <code>config.inc.php</code> file to point to where a new streaming log will be, e.g.:</p>
@@ -64,21 +69,23 @@ cd to <code>&lt;redis_installation&gt;/src</code> and start the server:</p>
 <pre><code>% ./redis-server
 </code></pre>
 
+<p>Note: once started, the Redis server will run happily in the background after its window is closed.  Similarly, some Redis installations will by default start the server automatically.  So, if you get a diagnostic that the redis server port is already in use, check for already-running processes.</p>
+
 <p>To start up the instance streams, in another terminal window, cd to <code>&lt;thinkup&gt;webapp/crawler</code>.  Then do:</p>
 
 <pre><code>% php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;
 </code></pre>
 
-<p>(E.g., use the same admin email and pwd that you use to run the crawler). You should see some output to STDOUT along the lines of the following, which shows starting up three instances.  In this example, IDs 1 and 3 belong to one user, and ID 2 belongs to a different user.  A PID file for each instance process gets written to <code>&lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming</code>.  </p>
+<p>(E.g., use the same admin email and pwd that you use to run the crawler). You should see some output to STDOUT along the lines of the following, which in this example shows starting up three instances.  In this example, IDs 1 and 3 belong to one user, and ID 2 belongs to a different user. </p>
 
-<pre><code>    have streamer method: stream
-    in TwitterRealtimePlugin-&gt;stream_all()
-    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57141.pid
-    started pid 57141 for amy@infosleuth.net and instance id 1
-    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57144.pid
-    started pid 57144 for amy@infosleuth.net and instance id 3
-    shell_exec of /usr/bin/touch &lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/57147.pid
-    started pid 57147 for info+bob@infosleuth.net and instance id 2
+<pre><code>  have streamer method: stream
+  in TwitterRealtimePlugin-&gt;stream_all()
+  starting new process for amy@infosleuth.net and 1
+  started pid 42486 for amy@infosleuth.net and instance id 1
+  starting new process for amy@infosleuth.net and 3
+  started pid 42488 for amy@infosleuth.net and instance id 3
+  starting new process for info+bob@infosleuth.net and 2
+  started pid 42490 for info+bob@infosleuth.net and instance id 2
 </code></pre>
 
 <p>The startup script will then exit.  A child script, <code>&lt;thinkup&gt;/webapp/plugins/twitter_realtime/streaming/stream2.php</code>, is used to launch the individual instance streams.  These are the processes which write to the message queue. <br>
@@ -89,7 +96,7 @@ cd to <code>&lt;redis_installation&gt;/src</code> and start the server:</p>
 <pre><code>    ps auxw | grep -i stream2
 </code></pre>
 
-<p>You should see a process for each instance.  You will also find some temp log files, for the output of each of the above processes, in the <code>&lt;thinkup&gt;/logs</code> dir. They will have the format <code>&lt;user_email&gt;_&lt;inst_id&gt;.log</code>.  If there were to be any trouble opening up the individual streams, these logs are where the problems would be reported.</p>
+<p>You should see a process for each instance.  You will also find some temp log files, for the output of each of the above processes, in the <code>&lt;thinkup&gt;/logs</code> dir. They will have the format <code>&lt;user_email&gt;_&lt;inst_id&gt;.log</code>.  If there were to be any trouble opening up the individual streams, these logs are where the problems would be reported. (Ensure that the login under which you&#8217;re running these scripts can write to your <code>logs</code> directory).</p>
 
 <p>Next, start up the stream processor. This is the process that reads from the message queue and processes the data. In another terminal window, again cd to <code>&lt;thinkup&gt;webapp/crawler</code>.
 Then run:  </p>
@@ -103,7 +110,7 @@ Then run:  </p>
 
 <p>There is no problem in running the crawler at the same time as the streaming scripts are running. (One thing the crawler will do is expand the URLs collected by the streaming processes, if you have the <code>Expand URLs</code> plugin activated).</p>
 
-<h3 id="shutting_down_the_scripts">Shutting down the scripts</h3>
+<h3 id="shutting_down_the_streams">Shutting down the streams</h3>
 
 <p>To shut down the stream handling processes for the Twitter instances, do from <code>&lt;thinkup&gt;webapp/crawler</code>:</p>
 
@@ -112,25 +119,44 @@ Then run:  </p>
 
 <p>You should see some output along these lines:</p>
 
-<pre><code>have streamer method: shutdown_streams
-in TwitterRealtimePlugin-&gt;shutdown_streams()
-killing all running streaming processes
-found pid 57141
-found pid 57144
-found pid 57147
-killed: 57141
-deleting 57141.pid
-killed: 57144
-deleting 57144.pid
-killed: 57147
-deleting 57147.pid
+<pre><code>  have streamer method: shutdown_streams
+  in TwitterRealtimePlugin-&gt;shutdown_streams()
+  killing all running streaming processes
+  killing: 42486
+  killed: 42486
+  killing: 42488
+  killed: 42488
+  killing: 42490
+  killed: 42490
 </code></pre>
-
-<p>If you should run <code>php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;</code> while stream processes are already opened, it will kill them based on their PIDs and then open new streams.</p>
 
 <p>To shut down the &#8216;stream processor&#8217; script (the one you started via <code>php stream.php stream_process</code>), just ctl-C in its terminal window. <br>
 You can use ctl-C to shut down the Redis server also.</p>
 
+<h3 id="automatically_restarting_streams_as_necessary">Automatically Restarting Streams as Necessary</h3>
+
+<p>If you should run <code>php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;</code> while stream processes are already opened, it will check to see which streams show signs of recent activity, where &#8216;recent&#8217; is currently defined to be 10 minutes. [Note: this should perhaps be a user-configurable value.].  Those streams showing activity will not be restarted. Those streams that appear inactive will be killed and restarted.  So, you can run this command regularly without doing any harm.  </p>
+
+<p>If all of the streams in the example above were still running, <code>php stream.php stream &lt;admin_user_email&gt; &lt;pwd&gt;</code> would generate output like this:</p>
+
+<pre><code>  have streamer method: stream
+  in TwitterRealtimePlugin-&gt;stream_all()
+  process 52389 listed with recent update time for instance with amy@infosleuth.net and 1-- not starting another one
+  process 52828 listed with recent update time for instance with amy@infosleuth.net and 3-- not starting another one
+  process 52393 listed with recent update time for instance with info+bob@infosleuth.net and 2-- not starting another one
+</code></pre>
+
+<p>If one of the streams had died for some reason, you would instead see output along these lines:</p>
+
+<pre><code>  have streamer method: stream
+  in TwitterRealtimePlugin-&gt;stream_all()
+  process 52389 listed with recent update time for instance with amy@infosleuth.net and 1-- not starting another one
+  killing process 52828 -- it has not updated recently
+  sh: line 0: kill: (52828) - No such process
+  starting new process for amy@infosleuth.net and 3
+  started pid 53785 for amy@infosleuth.net and instance id 3
+  process 52393 listed with recent update time for instance with info+bob@infosleuth.net and 2-- not starting another one
+</code></pre>
 
 </body>
 </html>

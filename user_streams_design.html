@@ -85,6 +85,13 @@ Also, you may notice that when you start up the stream, the first thing it sends
 <p>The database implementation resets the auto increment count on script startup (and also if the id reaches a given max), just so it doesn&#8217;t grow too large. 
 If it does not find anything in the database queue, it sleeps for a configurable period and then tests the queue again.  </p>
 
+<h2 id="stream_process_management">Stream process management</h2>
+
+<p>Stream process management has changed from previous versions, which used PID flat files to track running streams.    </p>
+
+<p>The app now stores stream process PIDs in the database&#8212; which should be more robust&#8212; and the individual UserStream processes (one for each &#8216;owner&#8217;) now generate an activity &#8216;heartbeat&#8217; as they run.  This allows dead or wedged stream processes to be identified, killed, and restarted, while live stream processes can be left to run.  This lets a regularly-run script (e.g., a cron job) check for stream &#8216;liveness&#8217; and restart the non-live processes as necessary.</p>
+
+
 
 </body>
 </html>
