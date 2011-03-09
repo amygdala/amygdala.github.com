@@ -77,7 +77,7 @@ cd to `<redis_installation>/src` and start the server:
     
 Note: once started, the Redis server will run happily in the background after its window is closed.  Similarly, some Redis installations will by default start the server automatically.  So, if you get a diagnostic that the redis server port is already in use, check for already-running processes.
 
-To start up the instance streams, in another terminal window, cd to `<thinkup>webapp/crawler`.  Then do:
+To start up the instance streams, in another terminal window, cd to `<thinkup>/webapp/crawler`.  Then do:
 
     % php stream.php stream <admin_user_email> <pwd>
     
@@ -103,7 +103,7 @@ At this point you might check that all the intended streams are running, via:
 You should see a process for each instance.  You will also find some temp log files, for the output of each of the above processes, in the `<thinkup>/logs` dir. They will have the format `<user_email>_<inst_id>.log`.  If there were to be any trouble opening up the individual streams, these logs are where the problems would be reported. (Ensure that the login under which you're running these scripts can write to your `logs` directory).
 
 
-Next, start up the stream processor. This is the process that reads from the message queue and processes the data. In another terminal window, again cd to `<thinkup>webapp/crawler`.
+Next, start up the stream processor. This is the process that reads from the message queue and processes the data. In another terminal window, again cd to `<thinkup>/webapp/crawler`.
 Then run:  
 
         % php stream.php stream_process <admin_user_email> <pwd>
