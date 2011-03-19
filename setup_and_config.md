@@ -43,7 +43,9 @@ Then do the following:
 
 - back up/copy your database.  [There are no known database issues with this code, but do this to be on the safe side.]
 
-- run the db migration `<thinkup>/webapp/install/sql/mysql_migrations/2011-02-25_streaming.sql`. [This assumes that your copy of the database is already otherwise current-- if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]
+- run the db migration `<thinkup>/webapp/install/sql/mysql_migrations/2011-03-19_streaming.sql`. [This assumes that your copy of the database is already otherwise current-- if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]
+
+  **Update 2011-03-19**: The [streaming4](https://github.com/amygdala/thinktank/tree/streaming4) branch has now been rebased on top of beta 9.  This means that if you update on top of an earlier installation, you'll need to run the beta 9 schema migration (and update the `database_version` in the `tu_options` table ). There were no new changes to the streaming branch's schema migration, but its migration file, `2011-03-19_streaming.sql`, has been renamed so that it is dated after the beta 9 migration file.
 
   **Updating the database from a previous version of the streaming branch**: There have been a few schema changes from previous streaming versions, notably a new table and a new table field, as well as a couple of index improvements.  If you want to update from a previous installation of the streaming branch, the most straightforward approach is probably to first run the migration file above (ignoring any complaints from the script about adding already-existing fields). Then [make this set of changes](https://gist.github.com/cffeba6df6043c328d42) to the existing tables.
 

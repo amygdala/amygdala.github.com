@@ -41,7 +41,9 @@ You can grab it by clicking the &#8216;Download&#8217; button on the page.
 <ul>
 <li><p>Optional: install Redis, if you are willing to test that aspect of the plugin: <a href="http://redis.io/">http://redis.io/</a>.  It would be useful to us if you are willing to try it. You may need to compile it, which should be straightforward.</p></li>
 <li><p>back up/copy your database.  [There are no known database issues with this code, but do this to be on the safe side.]</p></li>
-<li><p>run the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-02-25_streaming.sql</code>. [This assumes that your copy of the database is already otherwise current&#8212; if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]</p>
+<li><p>run the db migration <code>&lt;thinkup&gt;/webapp/install/sql/mysql_migrations/2011-03-19_streaming.sql</code>. [This assumes that your copy of the database is already otherwise current&#8212; if you are starting with an older version of the ThinkUp database you may first need to run additional ThinkUp migrations as you would normally do to update to a new release of the master, as described in the ThinkUp documentation.]</p>
+
+<p><strong>Update 2011-03-19</strong>: The <a href="https://github.com/amygdala/thinktank/tree/streaming4">streaming4</a> branch has now been rebased on top of beta 9.  This means that if you update on top of an earlier installation, you&#8217;ll need to run the beta 9 schema migration (and update the <code>database_version</code> in the <code>tu_options</code> table ). There were no new changes to the streaming branch&#8217;s schema migration, but its migration file, <code>2011-03-19_streaming.sql</code>, has been renamed so that it is dated after the beta 9 migration file.</p>
 
 <p><strong>Updating the database from a previous version of the streaming branch</strong>: There have been a few schema changes from previous streaming versions, notably a new table and a new table field, as well as a couple of index improvements.  If you want to update from a previous installation of the streaming branch, the most straightforward approach is probably to first run the migration file above (ignoring any complaints from the script about adding already-existing fields). Then <a href="https://gist.github.com/cffeba6df6043c328d42">make this set of changes</a> to the existing tables.</p></li>
 <li><p>when you go to &#8216;Settings&#8217; in your ThinkUp installation in the browser, you should now see a &#8220;<strong>Twitter Realtime</strong>&#8221; plugin.  Activate it, then go into its configuration page.  For the Twitter Realtime plugin to work properly, the Twitter Plugin must already be activated and configured with a Twitter app &#8216;consumer key&#8217; and &#8216;consumer secret&#8217;.  Additionally, you should have already set up one or more Twitter accounts via the Twitter Plugin.</p></li>
@@ -157,6 +159,7 @@ You can use ctl-C to shut down the Redis server also.</p>
   started pid 53785 for amy@infosleuth.net and instance id 3
   process 52393 listed with recent update time for instance with info+bob@infosleuth.net and 2-- not starting another one
 </code></pre>
+
 
 </body>
 </html>
