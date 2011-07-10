@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--[if IE 6 ]><html class="ie ielt9 ielt8 ielt7 ie6" lang="en-gb"><![endif]-->
+<!--[if IE 7 ]><html class="ie ielt9 ielt8 ie7" lang="en-gb"><![endif]-->
+<!--[if IE 8 ]><html class="ie ielt9 ie8" lang="en-gb"><![endif]-->
+<!--[if IE 9 ]><html class="ie ie9" lang="en-gb"><![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--><html lang="en-gb"><!--<![endif]-->
+  <head>
+    <title>Preliminary Version of Site Streams in ThinkUp</title>
+
+    <meta charset="utf-8">
+
+    <meta name="author" content="aj">
+    <meta name="generator" content="iA Writer for Mac 1.0.1" />
+
+    <style>
+      html,body,h1,h2,h3,h4,h5,h6,p,blockquote,pre,code,em,img,small,strong,sub,sup,b,i,dl,dt,dd,ol,ul,li,table,tbody,tfoot,thead,tr,th,td {
+      background:transparent;
+      border:0;
+      font-size:100%;
+      margin:0;
+      padding:0;
+      outline:0;
+      vertical-align:baseline
+      }
+
+      body {
+      background-color:#FFFFFF;
+      color:#222222;
+      font:normal normal 400 100%/1.5em serif;
+      margin:2em auto;
+      width:45em;
+      }
+
+       a {
+              text-decoration: none;
+              background-color: #e0eeef;
+              padding: 0 1px;
+              color: #5B5344;
+              /*border-bottom-color: #7B3B3B;
+              border-bottom-width: 1px;*/
+      }
+
+       a:visited {
+              color: #5B5344;
+      }
+
+       a:hover {
+              text-decoration: underline;
+              background-color: #e0eeef;
+              /*border-bottom: 1px solid #aab57b;*/
+              color: #5B5344;
+      }
+
+      hr {
+      border:0;
+      border-top:1px solid #CCCCCC;
+      display:block;
+      height:1px;
+      margin:1em 0;
+      padding:0
+      }
+
+      h1,h2,h3,h4,h5,h6,dl,ol,ul,p,blockquote,pre {
+      margin-bottom:1em;
+      margin-top:1em
+      }
+
+      ol ol,
+      ol ul,
+      ul ol,
+      ul ul {
+      margin-left:1.5em
+      }
+
+      dd,dt,li {
+      display:list-item outside
+      }
+
+      blockquote {
+      border-left:solid .1em #DDD;
+      padding-left:1.4em;
+      quotes:none
+      }
+
+      blockquote ol,
+      blockquote ul {
+      margin-left:1.5em
+      }
+
+      code {
+      background-color:#FFE;
+      font-family:monospace, sans-serif;
+      font-size:87.5%;
+      margin-bottom:-.125em;
+      margin-left:.125em;
+      margin-right:.125em;
+      margin-top:-.125em;
+      padding:.125em
+      }
+
+      pre {
+      background-color:#FFE;
+      padding:.75em
+      }
+
+      pre code {
+      display:block;
+      margin:0
+      }
+
+      h1 {
+      font-size:1.5em
+      }
+
+      h2 {
+      font-size:1.3125em
+      }
+
+      h3 {
+      font-size:1.125em
+      }
+
+      h4 {
+      font-size:1em
+      }
+
+      h5 {
+      font-size:1em
+      }
+
+      h6 {
+      font-size:1em
+      }
+
+      table {
+      border-collapse:collapse;
+      width:100%
+      }
+    </style>
+  </head>
+  <body>
+<h1>Preliminary Version of Site Streams in ThinkUp</h1>
+
+<p>I have built a prototype ThinkUp branch that supports Twitter <a href="http://dev.twitter.com/pages/site_streams">SiteStreams</a> (as opposed to User Streams).  Site Streams is still in beta and requires that an app be whitelisted. 
+    
+With Site Streams, many users, up to 100, are supported per stream (for > 100 users, you still must open multiple streams). When you start a site stream, you enumerate the twitter ids of all users whose data you want to pull in-- all of whom must have authorized with your twitter app-- and you get a big hose interleaving everyone's stream together.  [In contrast, User Streams requires an individual stream process for each user.]</p>
+
+<p>The Site Streams version has been working well for me-- I'm now running it all the time.  It's currently functional (to my knowledge there are no problems with it) but not yet packaged up properly.</p>
+
+<p>However, I probably can't do much/any work on this code for the next few months, so wanted to put it out there in case anyone is curious to see the basic changes required to use Site Streams or wants to play with it/develop it further.  </p>
+
+<p>I hope to keep the branch (URL below) rebased with the ThinkUp master but will probably not manage more more than that.
+This branch <em>only</em> allows use of Site Streams-- it does not support User Streams.  Eventually, the same Realtime plugin should support both streaming variants.</p>
+
+<p>The following assumes familiarity with the User Streams version.  Feel free to ask me if anything does not make sense or you run into any problems.</p>
+
+<p>The code is here: <br>
+<a href="https://github.com/amygdala/thinktank/tree/sstreams2">https://github.com/amygdala/thinktank/tree/sstreams2</a>. <br>
+It has a migration associated with it: <code>2011-07-05_sstreams.sql</code>, which adds a field to <code>tu_owner_instances</code>.  See below for more on that.  You will not only need to add the field via the migration, but (for now) manually update the field in the database for one record.</p>
+
+<h2>setup and configuration</h2>
+
+<ul>
+<li><p>The usual disclaimer: while I know of no issues, do back up/copy your database first.</p></li>
+<li><p>You first need to get whitelisted by Twitter for the SiteStreams beta, which involves <a href="http://bit.ly/sitestreams">submitting a form</a>.  As part of the process you'll need to indicate the twitter app, associated with a given twitter account, that you will be using.</p></li>
+<li><p>Once whitelisted, when you set things up for a ThinkUp installation, all the users that you intend to include in the Site Stream (that is, all active ThinkUp instances) will need to have authorized that whitelisted twitter app.  </p></li>
+<li><p>When ThinkUp starts up the SiteStream, the stream needs to be initiated using the oAuth info of the twitter user that owns the whitelisted app. </p></li>
+</ul>
+
+<p>Because of this, we need to know which ThinkUp twitter <em>instance</em> information to use to start up the stream. <br>
+This is indicated by the field added by the <code>2011-07-05_sstreams.sql</code> migration to <code>tu_owners_instances</code>, the <code>is_primary</code> field. If that field is set for a record, that is the instance to use. <strong>You need to manually set "is_primary" to 1, for the instance record that owns your whitelisted twitter app</strong>. For all other instance records in <code>tu_owner_instances</code>, it should be the default 0. If you don't do this, the stream startup process won't work properly.</p>
+
+<h3>running the stream process</h3>
+
+<p>Once the setup above is completed, you should be able to manage the streaming using the same scripts and syntax as with the User Streams version.</p>
+
+<p>The command-line syntax is the same. <strong>You will need to indicate the email/pwd for the ThinkUp owner that owns the whitelisted instance. This owner should be an admin</strong>.</p>
+
+<h2>under the hood</h2>
+
+<p>In case you are curious, here is some of what needed to change:</p>
+
+<ul>
+<li><p>It's necessary to deal with the stream a bit differently, so this version uses a (new) SiteStreamPhirehose class. You can diff it with the UserstreamPhirehose class to see the changes.</p></li>
+<li><p>The data coming in on the stream has one more level of structure  than with User Streams-- it indicates which user's stream a data item is associated with. Since currently, we store all of the user streams for an installation in the same database, we don't need to do anything additional with this information.  [In future, if a Site Stream were to feed multiple installations/dbs, this info would be necessary for routing].</p></li>
+<li><p>The other primary changes relate to how the stream process(es) are started up.  With SiteStreams, we just need to run one stream child process, not one for each user (as with User Streams).  So you will see that only one child process gets started.  The log file for this child process will list all the twitter IDs that the stream is following, which should be for all active instances. Remember that all of these instances must also have authenticated with the whitelisted app. [Note that this version of the code doesn't count the number of users tracked by the stream, so in the very unlikely event that your ThinkUp installation has more than 100 twitter instances, you should modify the code to split them up across multiple streams]</p></li>
+</ul>
+
+  <!-- HTML document generated using John Gruber's Markdown.pl script: http://daringfireball.net/projects/markdown/ -->
+  </body>
+</html>
